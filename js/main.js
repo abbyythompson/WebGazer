@@ -87,9 +87,12 @@ window.onbeforeunload = function() {
  * Restart the calibration process by clear the local storage and reset the calibration point
  */
 function Restart(){
-    
+
     document.getElementById("Accuracy").innerHTML = "<a>Not yet Calibrated</a>";
-    
+    if (document.getElementById("Calibrate").innerHTML == "<a href=\"#\">Calibrate</a>") {
+      document.getElementById("Calibrate").innerHTML = "<a href=\"#\">Recalibrate</a>";
+    }
+
     ClearCalibration();
     PopUpInstruction();
 }

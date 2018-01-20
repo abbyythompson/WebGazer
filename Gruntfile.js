@@ -1,9 +1,20 @@
 module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-concat');
-	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-uglify-es');
+
+	var banner_string =
+	'/** WebGazer.js: Scalable Webcam EyeTracking Using User Interactions \n' +
+	' * \n' +
+	' * Copyright (c) 2016-2018, Brown HCI Group \n' +
+	'\n' +
+	'* Licensed under GPLv3. Companies with a valuation of less than $10M can use WebGazer.js under LGPLv3. \n' +
+	'*/\n\n';
 
 	grunt.initConfig({
 		concat: {
+			options: {
+				banner: banner_string
+			},
 			dist: {
 				nonull: true,
 				src: [
@@ -39,13 +50,14 @@ module.exports = function(grunt) {
 					'src/ridgeWeightedReg.js',
 					'src/ridgeRegThreaded.js',
 					'src/util.js',
-					'src/webgazer.js',
+					'src/webgazer.js'
 				],
 				dest: './build/webgazer.js',
 			}
 		},
 		uglify: {
 			options: {
+				banner: banner_string,
 				preserveComments: false,
 				mangle: false,
 				compress: {

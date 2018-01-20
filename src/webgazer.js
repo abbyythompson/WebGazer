@@ -1,12 +1,13 @@
 (function(window, undefined) {
     console.log('initializing webgazer');
     //strict mode for type safety
-    "use strict";
+    'use strict';
 
     //auto invoke function to bind our own copy of window and undefined
 
     //set up namespaces for modules
     window.webgazer = window.webgazer || {};
+    webgazer = webgazer || {};
     webgazer.tracker = webgazer.tracker || {};
     webgazer.reg = webgazer.reg || {};
     webgazer.params = webgazer.params || {};
@@ -24,7 +25,9 @@
 
     //Params to clmtrackr and getUserMedia constraints
     webgazer.params.clmParams = webgazer.params.clmParams || {useWebGL : true};
-    webgazer.params.camConstraints = webgazer.params.camConstraints || { video:true };
+    webgazer.params.camConstraints = webgazer.params.camConstraints || { video: true };
+
+    webgazer.params.smoothEyeBB = webgazer.params.smoothEyeBB || true;
 
     //DEBUG variables
     //debug control boolean
@@ -99,11 +102,11 @@
     * draws a "black" dot where the click occurred
     * @param {e} e - the event click
     */
-    document.onclick = function(e){
+    /*document.onclick = function(e){
         var cursorX = e.pageX;
         var cursorY = e.pageY;
-        drawCoordinates('black',cursorX,cursorY);
-    }
+    }*/
+    // Seems to no longer be used
 
     /**
     * Checks if the pupils are in the position box on the video
@@ -171,7 +174,6 @@
     * @param {y} y - The y co-ordinate of the desired point to plot
     */
     function drawCoordinates(colour,x,y){
-        console.log("drawCoordinates");
         var ctx = document.getElementById("plotting_canvas").getContext('2d');
         ctx.fillStyle = colour; // Red color
         ctx.beginPath();
@@ -227,7 +229,7 @@
     function getPrediction(regModelIndex) {
         var predictions = [];
         var features = getPupilFeatures(videoElementCanvas, webgazer.params.imgWidth, webgazer.params.imgHeight);
-        if (regs.length == 0) {
+        if (regs.length === 0) {
             console.log('regression not set, call setRegression()');
             return null;
         }
@@ -235,12 +237,12 @@
             predictions.push(regs[reg].predict(features));
         }
         if (regModelIndex !== undefined) {
-            return predictions[regModelIndex] == null ? null : {
+            return predictions[regModelIndex] === null ? null : {
                 'x' : predictions[regModelIndex].x,
                 'y' : predictions[regModelIndex].y
             };
         } else {
-            return predictions.length == 0 || predictions[0] == null ? null : {
+            return predictions.length === 0 || predictions[0] === null ? null : {
                 'x' : predictions[0].x,
                 'y' : predictions[0].y,
                 'all' : predictions
@@ -252,16 +254,8 @@
      * Runs every available animation frame if webgazer is not paused
      */
     var smoothingVals = new webgazer.util.DataWindow(4);
-
-    //make empty arrays to store the past 50 points of the tracker
-    //used to give precision feedback to user
-    //var xPast50 = new Array(50);
-    //var yPast50 = new Array(50);
     var k = 0;
-    //make empty array
-    var average_x = new Array(3);
-    var average_y = new Array(3);
-    var i = 0;
+
     function loop() {
         var gazeData = getPrediction();
         var elapsedTime = performance.now() - clockStart;
@@ -280,11 +274,8 @@
             }
             var pred = webgazer.util.bound({'x':x/len, 'y':y/len});
 
-            if (draw_points){
-              drawCoordinates('blue',pred.x,pred.y); //draws the previous predictions
-            }
-
             if (store_points_var) {
+              drawCoordinates('blue',pred.x,pred.y); //draws the previous predictions
               //store the position of the past fifty occuring tracker preditions
               store_points(pred.x, pred.y, k);
               k++;
@@ -292,28 +283,8 @@
                 k = 0;
               }
             }
+            gazeDot.style.transform = 'translate3d(' + pred.x + 'px,' + pred.y + 'px,0)';
 
-            average_x[i] = pred.x; //add to averages
-            average_y[i] = pred.y;
-
-            if (i == 2) { // after 3 adds them all up and gets the average
-              x = 0;
-              y = 0;
-              for(count = 0; count < 3; count++){
-                x+=average_x[count];
-                y+=average_y[count];
-              }
-              x=x/3;
-              y=y/3;
-              //drawCoordinates('yellow',x,y); // yellow is every third plot
-              gazeDot.style.transform = 'translate3d(' + pred.x + 'px,' + pred.y + 'px,0)';
-
-              i = 0; //clears all variables
-              average_x = new Array(3);
-              average_y = new Array(3);
-            } else {
-              i++;
-            }
             //Check that the eyes are inside of the validation box
             checkEyesInValidationBox();
         }
@@ -337,7 +308,7 @@
             return;
         }
         var features = getPupilFeatures(videoElementCanvas, webgazer.params.imgWidth, webgazer.params.imgHeight);
-        if (regs.length == 0) {
+        if (regs.length === 0) {
             console.log('regression not set, call setRegression()');
             return null;
         }
@@ -470,7 +441,7 @@
     webgazer.begin = function(onFail) {
         loadGlobalData();
 
-        onFail = onFail || function() {console.log("No stream")};
+        onFail = onFail || function() {console.log('No stream')};
 
         if (debugVideoLoc) {
             init(debugVideoLoc);
@@ -510,7 +481,7 @@
      * @returns {boolean} if webgazer is ready
      */
     webgazer.isReady = function() {
-        if (videoElementCanvas == null) {
+        if (videoElementCanvas === null) {
             return false;
         }
         paintCurrentFrame(videoElementCanvas, webgazer.params.imgWidth, webgazer.params.imgHeight);
@@ -628,7 +599,7 @@
      * @return {webgazer} this
      */
     webgazer.setTracker = function(name) {
-        if (curTrackerMap[name] == undefined) {
+        if (curTrackerMap[name] === undefined) {
             console.log('Invalid tracker selection');
             console.log('Options are: ');
             for (var t in curTrackerMap) {
@@ -646,7 +617,7 @@
      * @return {webgazer} this
      */
     webgazer.setRegression = function(name) {
-        if (regressionMap[name] == undefined) {
+        if (regressionMap[name] === undefined) {
             console.log('Invalid regression selection');
             console.log('Options are: ');
             for (var reg in regressionMap) {
